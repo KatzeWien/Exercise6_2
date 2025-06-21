@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Token Balance Checker</title>
+  <script src="https://cdn.jsdelivr.net/npm/ethers@6.10.0/dist/ethers.umd.min.js"></script>
+</head>
+<body>
+  <h1>ERC20 Balance auf Holesky</h1>
+  <button onclick="getBalance()">Zeige Token Balance</button>
+  <p id="result">Noch keine Abfrage durchgeführt.</p>
+
+  <script>
+    const contractAddress = "0x681B96a86a0FFd4A487d5ca95e1B5f206FC25De7"; 
+    const abi = [
+      "function balanceOf(address account) view returns (uint256)",
+      "function decimals() view returns (uint8)",
+      "function symbol() view returns (string)"
+    ];
+
+    async function getBalance() {
+      try {
+        if (!window.ethereum) {
+          alert("MetaMask nicht gefunden");
+          return;
+        }
+
+        await window.ethereum.request({ method: "eth_requestAccounts" });
+
+        const provider = new ethers.BrowserProvider(window.ethereum);
+        const signer = await provider.getSigner();
+        const userAddress = await signer.getAddress();
+
+        const contract = new ethers.Contract(contractAddress, abi, provider);
+        const balance = await contract.balanceOf(userAddress);
+        const decimals = await contract.decimals();
+        const symbol = await contract.symbol();
+
+        const formatted = ethers.formatUnits(balance, decimals);
+        document.getElementById("result").innerText = `Dein Kontostand: ${formatted} ${symbol}`;
+      } catch (error) {
+        console.error(error);
+        document.getElementById("result").innerText = "Fehler beim Abrufen des Kontostands.";
+      }
+    }
+  </script>
+</body>
+</html>
